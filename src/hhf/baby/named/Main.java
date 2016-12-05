@@ -1,6 +1,5 @@
 package hhf.baby.named;
 
-import javax.xml.crypto.Data;
 import java.io.*;
 import java.net.URLEncoder;
 import java.sql.SQLException;
@@ -23,17 +22,20 @@ public class Main {
         InputStreamReader isr = new InputStreamReader(new FileInputStream(f));
         isr.read(chars);
         isr.close();
-        String s =  new String(chars);
+        String s =  new String(chars).replaceAll("\\r", "");
         String[] names = s.split("\n");
         for(int i=0; i<names.length;i++){
 
-            if(Database.getInst().get(names[i])==null){
+            if(names[i].length()>0 && Database.getInst().get(names[i])==null){
+                System.out.println("Name:'" + names[i] + "'");
                 Database.getInst().addName(names[i].trim());
-                System.out.println(names[i]);
+
             }
 
         }
     }
+
+
 
     private static void computeName() throws SQLException, UnsupportedEncodingException {
         List<Named> all = Database.getInst().all();
@@ -43,9 +45,17 @@ public class Main {
 
 
             named = all.get(i);
+            if(named.first!=null){
+                continue;
+            }
             named.first = named.fullName.substring(0,1);
             named.second = named.fullName.substring(1,2);
-            named.third = named.fullName.substring(2,3);
+            if(named.fullName.length()==3) {
+                named.third = named.fullName.substring(2, 3);
+            }
+            else{
+                named.third ="";
+            }
             if(named.score==0.0) {
                 String url = "http://www.51bazi.com/sm/xm.asp";
                 String params = "xing=" + encode(named.first) + "&ming=" + encode(named.second + named.third) + "&xingbie=%C4%D0&xuexing=O&nian=2016&yue=10&ri=28&hh=21&mm=44";
@@ -60,13 +70,19 @@ public class Main {
                 String tag2 = "<td align=\"center\"><div class=\"tzg\">";
                 int start2 = resp.indexOf(tag2);
                 int len2 = resp.indexOf("\n", start2);
-                named.wx2 = getWuXing(resp.substring(start2, len2));
-
-                String tag3 = "<td align=\"center\"><div class=\"tzg\">";
-                int start3 = resp.indexOf(tag3);
-                int len3 = resp.indexOf("\n", start2);
-                named.wx3 = getWuXing(resp.substring(start3, len3));
-
+                try {
+                    named.wx2 = getWuXing(resp.substring(start2, len2));
+                }
+                catch (Exception ex){
+                    ex.printStackTrace();
+                    continue;
+                }
+                if(named.fullName.length()==3) {
+                    String tag3 = "<td align=\"center\"><div class=\"tzg\">";
+                    int start3 = resp.indexOf(tag3);
+                    int len3 = resp.indexOf("\n", start2);
+                    named.wx3 = getWuXing(resp.substring(start3, len3));
+                }
                 String s = "<td height=\"37\"><div class=pf>得分：";
                 int start4 = resp.indexOf(s) + s.length();
                 int end4 = resp.indexOf("<", start4);

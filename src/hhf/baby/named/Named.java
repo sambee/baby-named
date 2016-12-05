@@ -8,7 +8,7 @@ public class Named {
     public String fullName;
     public String first;
     public String second;
-    public String third;
+    public String third ="";
     public String wx1;
     public String wx2;
     public String wx3;
