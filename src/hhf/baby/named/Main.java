@@ -13,6 +13,12 @@ public class Main {
     public static void main(String[] args) throws IOException, SQLException {
         loadAllNames();
         computeName();
+//        Named n = new Named();
+//        n.fullName = "黄靖曦";
+//        n.first = "黄";
+//        n.second = "靖";
+//        n.third = "曦";
+//        doIt(n);
     }
 
     private static void loadAllNames() throws IOException, SQLException {
@@ -57,41 +63,45 @@ public class Main {
                 named.third ="";
             }
             if(named.score==0.0) {
-                String url = "http://www.51bazi.com/sm/xm.asp";
-                String params = "xing=" + encode(named.first) + "&ming=" + encode(named.second + named.third) + "&xingbie=%C4%D0&xuexing=O&nian=2016&yue=10&ri=28&hh=21&mm=44";
-                String resp = HttpRequest.sendPost(url, params);
-                System.out.print(resp);
-                String tag = "<td height=\"41\" align=\"center\"><div class=\"tzg\">";
-                int start1 = resp.indexOf(tag);
-                int len1 = resp.indexOf("\n", start1);
-
-                named.wx1 = getWuXing(resp.substring(start1, len1));
-
-                String tag2 = "<td align=\"center\"><div class=\"tzg\">";
-                int start2 = resp.indexOf(tag2);
-                int len2 = resp.indexOf("\n", start2);
-                try {
-                    named.wx2 = getWuXing(resp.substring(start2, len2));
-                }
-                catch (Exception ex){
-                    ex.printStackTrace();
-                    continue;
-                }
-                if(named.fullName.length()==3) {
-                    String tag3 = "<td align=\"center\"><div class=\"tzg\">";
-                    int start3 = resp.indexOf(tag3);
-                    int len3 = resp.indexOf("\n", start2);
-                    named.wx3 = getWuXing(resp.substring(start3, len3));
-                }
-                String s = "<td height=\"37\"><div class=pf>得分：";
-                int start4 = resp.indexOf(s) + s.length();
-                int end4 = resp.indexOf("<", start4);
-
-                String score = resp.substring(start4, end4);
-                named.score = Float.valueOf(score);
-                Database.getInst().save(named);
+                doIt(named);
             }
         }
+    }
+
+    private static void doIt(Named named) throws UnsupportedEncodingException, SQLException {
+        String url = "http://www.51bazi.com/sm/xm.asp";
+        String params = "xing=" + encode(named.first) + "&ming=" + encode(named.second + named.third) + "&xingbie=%C4%D0&xuexing=O&nian=2016&yue=10&ri=28&hh=21&mm=44";
+        String resp = HttpRequest.sendPost(url, params);
+        System.out.print(resp);
+        String tag = "<td height=\"41\" align=\"center\"><div class=\"tzg\">";
+        int start1 = resp.indexOf(tag);
+        int len1 = resp.indexOf("\n", start1);
+
+        named.wx1 = getWuXing(resp.substring(start1, len1));
+
+        String tag2 = "<td align=\"center\"><div class=\"tzg\">";
+        int start2 = resp.indexOf(tag2);
+        int len2 = resp.indexOf("\n", start2);
+        try {
+            named.wx2 = getWuXing(resp.substring(start2, len2));
+        }
+        catch (Exception ex){
+            ex.printStackTrace();
+            return;
+        }
+        if(named.fullName.length()==3) {
+            String tag3 = "<td align=\"center\"><div class=\"tzg\">"+named.third;
+            int start3 = resp.indexOf(tag3);
+            int len3 = resp.indexOf("\n", start3);
+            named.wx3 = getWuXing(resp.substring(start3, len3));
+        }
+        String s = "<td height=\"37\"><div class=pf>得分：";
+        int start4 = resp.indexOf(s) + s.length();
+        int end4 = resp.indexOf("<", start4);
+
+        String score = resp.substring(start4, end4);
+        named.score = Float.valueOf(score);
+        Database.getInst().save(named);
     }
 
     private static  String getWuXing(String str){
@@ -101,10 +111,12 @@ public class Main {
                 return wuxing.substring(i, i+1);
             }
         }
-        throw new RuntimeException(str);
+        return "";
     }
 
     private static  String encode(String str) throws UnsupportedEncodingException {
         return URLEncoder.encode(str, "GBK");
     }
+
+
 }

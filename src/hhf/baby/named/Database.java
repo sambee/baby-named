@@ -33,7 +33,7 @@ public class Database {
 
     public void addName(String name) throws SQLException {
 
-        PreparedStatement ps = conn.prepareStatement("INSERT OR REPLACE INTO NAMED(fullname) VALUES (?) ");
+        PreparedStatement ps = conn.prepareStatement("INSERT INTO NAMED(fullname) VALUES (?) ");
         ps.setString(1, name);
         ps.executeUpdate();
         ps.close();
