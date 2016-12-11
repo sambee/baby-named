@@ -3,6 +3,8 @@ package hhf.baby.named;
 import java.io.*;
 import java.net.URLEncoder;
 import java.sql.SQLException;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -19,13 +21,14 @@ public class Main {
 //        n.second = "靖";
 //        n.third = "曦";
 //        doIt(n);
+        outputAllNames();
     }
 
     private static void loadAllNames() throws IOException, SQLException {
         File f = new File("named.txt");
         long size = f.length();
         char[] chars = new char[(int)size];
-        InputStreamReader isr = new InputStreamReader(new FileInputStream(f));
+        InputStreamReader isr = new InputStreamReader(new FileInputStream(f),"UTF-8");
         isr.read(chars);
         isr.close();
         String s =  new String(chars).replaceAll("\\r", "");
@@ -51,9 +54,11 @@ public class Main {
 
 
             named = all.get(i);
+            System.out.println( i + " " + named.fullName);
             if(named.first!=null){
                 continue;
             }
+
             named.first = named.fullName.substring(0,1);
             named.second = named.fullName.substring(1,2);
             if(named.fullName.length()==3) {
@@ -118,5 +123,30 @@ public class Main {
         return URLEncoder.encode(str, "GBK");
     }
 
+
+    public static void outputAllNames() throws SQLException, IOException {
+        List<Named> all = Database.getInst().all();
+        Collections.sort(all, new Comparator<Named>(){
+
+            @Override
+            public int compare(Named o1, Named o2) {
+                if (o1.score!=null && o2.score!=null){
+                    return o1.score.compareTo(o2.score);
+                }
+                return 0;
+            }
+        });
+        File f = new File("named.txt");
+        OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(f), "UTF-8");
+
+        for(int i=0; i<all.size();i++) {
+            try {
+                osw.write(all.get(i).fullName + "\n");
+            } catch (Exception ex) {
+
+            }
+        }
+        osw.close();
+    }
 
 }
